@@ -40,6 +40,13 @@ class LoopbackTests(unittest.TestCase):
         with socket.socket() as reserved:
             reserved.bind(('127.0.0.1', 0))
             port = reserved.getsockname()[1]
+        try:
+            with socket.create_connection(('127.0.0.1', port), timeout=1):
+                self.fail('A porta reservada foi aceita após liberar o socket.')
+        except ConnectionRefusedError:
+            pass
+        except socket.timeout:
+            self.skipTest('O ambiente filtrou a conexão TCP de loopback.')
         result = next(scan_ports('127.0.0.1', port, port))
         self.assertEqual(result.status, 'closed')
 
